@@ -1,0 +1,13 @@
+
+int led = 13; // var led  declaration
+int button = 1; // var button declaration
+
+void setup() {
+  pinMode(led, OUTPUT); //digital writing pin 13
+  pinMode(button, INPUT); // digital writing pin 1
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+}
