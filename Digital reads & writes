@@ -8,6 +8,8 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  delay(1000); // 1 sec delay ( in ms )
+  digitalWrite(led, HIGH);
+  delay(1000); // the led waits for 1000 ms then  TURNS off
 
 }
