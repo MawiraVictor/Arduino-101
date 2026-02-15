@@ -1,0 +1,115 @@
+#include <Servo.h>
+
+// Your existing pin configuration (unchanged)
+const int trigPin = 10;
+const int echoPin = 11;
+Servo myServo;  // Still on pin 12 (from myServo.attach(12))
+
+// Variables for distance measurement
+long duration;
+int distance;
+
+// Smart bin states
+bool lidOpen = false;
+unsigned long lidOpenTime = 0;
+const unsigned long lidDelay = 3000;  // Lid stays open for 3 seconds
+const int detectionRange = 30;        // Object detected within 30cm
+
+// Debounce variables
+bool objectDetected = false;
+unsigned long lastDetectionTime = 0;
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  Serial.begin(9600);
+  myServo.attach(12);
+  
+  // Start with lid CLOSED (90° is lid closed position)
+  // Adjust this angle based on your mechanical setup
+  myServo.write(90);
+  
+  Serial.println("Smart Bin Ready!");
+  Serial.println("Lid Closed");
+}
+
+void loop() {
+  // Measure distance using your existing function
+  distance = calculateDistance();
+  
+  // Print debug info
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.print(" cm - ");
+  
+  // Check if object is within range
+  if (distance > 0 && distance < detectionRange) {
+    // Object detected
+    if (!objectDetected) {
+      // New object detected
+      objectDetected = true;
+      Serial.println("Object detected!");
+    }
+    lastDetectionTime = millis();
+    
+    // Open lid if it's closed
+    if (!lidOpen) {
+      openLid();
+    }
+  } else {
+    // No object detected
+    if (objectDetected) {
+      objectDetected = false;
+      Serial.println("Object gone");
+    }
+  }
+  
+  // Check if it's time to close the lid
+  if (lidOpen && (millis() - lastDetectionTime > lidDelay)) {
+    closeLid();
+  }
+  
+  delay(100);  // Small delay between readings
+}
+
+// Your original calculateDistance function (unchanged)
+int calculateDistance() { 
+  digitalWrite(trigPin, LOW); 
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH); 
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+  return distance;
+}
+
+// Function to open the lid
+void openLid() {
+  Serial.println("Opening lid...");
+  
+  // Smoothly move servo to open position (adjust angle as needed)
+  // If 90° is closed, maybe 0° or 180° is open - depends on your setup!
+  for (int angle = 90; angle <= 160; angle++) {
+    myServo.write(angle);
+    delay(15);
+  }
+  
+  lidOpen = true;
+  lidOpenTime = millis();
+  Serial.println("Lid Open");
+}
+
+// Function to close the lid
+void closeLid() {
+  Serial.println("Closing lid...");
+  
+  // Smoothly move servo back to closed position
+  for (int angle = 160; angle >= 90; angle--) {
+    myServo.write(angle);
+    delay(15);
+  }
+  
+  lidOpen = false;
+  Serial.println("Lid Closed");
+}
